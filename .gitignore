@@ -1,0 +1,87 @@
+# Entorno virtual de Python
+venv/
+env/
+.env/
+virtualenv/
+ENV/
+
+# Archivos de Python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Archivos de configuración local y datos sensibles
+*.local
+*.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+local_settings.py
+settings.py  # Opcional, si no quieres incluir configuraciones sensibles
+
+# Base de datos local
+*.sqlite3
+*.db
+
+# Archivos de caché y temporales
+*.cache
+*.log
+*.pid
+*.seed
+*.bak
+*.swp
+*~
+
+# Archivos de Django migrations (opcional, si no deseas versionar migraciones locales)
+*/migrations/*.py
+!*/migrations/__init__.py
+
+# Archivos estáticos y de medios generados
+staticfiles/
+media/
+
+# Archivos de IDE y editores
+.idea/  # PyCharm/IntelliJ
+.vscode/  # Visual Studio Code
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+
+# Archivos de sistema operativo
+.DS_Store  # macOS
+Thumbs.db  # Windows
+
+# Archivos de dependencias de Node.js (si usas frontend con npm/yarn)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Archivos de cobertura y pruebas
+.coverage
+coverage.xml
+*.cover
+*.py,cover
+htmlcov/
+.tox/
+.pytest_cache/
+
+# Archivos de compilación de frontend (si usas Webpack, Vite, etc.)
+dist/
+build/
+*.min.js
+*.min.css
+
+# Archivos de documentación generados
+docs/_build/
+
+# Otros archivos temporales o sensibles
+*.bak
+*.swp
+*.swo
+*.tmp

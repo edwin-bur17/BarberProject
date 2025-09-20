@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Formulario reserva</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        background-color: #f0f2f5;
+        margin: 0;
+        padding: 20px;
+      }
+
+      h2 {
+        text-align: center;
+        color: #222;
+        margin-bottom: 20px;
+        font-size: 1.8rem;
+      }
+
+      p[style*="color:red"] {
+        color: red;
+        font-weight: bold;
+        text-align: center;
+      }
+
+      .container {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 30px;
+        max-width: 1000px;
+        margin: 0 auto;
+        flex-wrap: wrap; /* para móviles se apilen */
+      }
+
+      form {
+        flex: 1;
+        min-width: 300px;
+        background-color: #fff;
+        padding: 25px 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      form p {
+        margin-bottom: 15px;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 15px;
+        box-sizing: border-box;
+        transition: border-color 0.3s, box-shadow 0.3s;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+        outline: none;
+      }
+
+      form button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 10px;
+        font-size: 16px;
+        font-weight: bold;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: linear-gradient(135deg, #007bff, #0056d2);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        transition: background 0.3s, transform 0.2s;
+      }
+
+      form button:hover {
+        background: linear-gradient(135deg, #0056d2, #003a99);
+        transform: translateY(-2px);
+      }
+
+      .slots {
+        flex: 1;
+        min-width: 300px;
+      }
+
+      .slots h3 {
+        text-align: center;
+        color: #444;
+        margin-bottom: 15px;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 15px;
+      }
+
+      ul li {
+        background-color: #fff;
+        padding: 14px;
+        border-radius: 10px;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 500;
+        color: #333;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s, background 0.3s, color 0.3s;
+        cursor: pointer;
+      }
+
+      ul li:hover {
+        background: #007bff;
+        color: #fff;
+        transform: scale(1.05);
+      }
+
+      ul li.selected {
+        background: #007bff;
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>
+      Formulario de reserva {% if barbero %} con, {{ barbero.nombre }}{% endif %}
+    </h2>
+
+    {% if error %}
+    <p style="color: red">{{ error }}</p>
+    {% endif %}
+
+    <div class="container">
+      <!-- Formulario a la izquierda -->
+      <form method="post">
+        {% csrf_token %} {{ form.as_p }}
+        <button type="button" onclick="abrirModal()">Reservar</button>
+      </form>
+
+      <!-- Slots en grid a la derecha -->
+      <div class="slots">
+        <h3>Horarios dipobibles hoy:</h3>
+        <ul id="slot-list">
+          {% for s in slots %}
+          <li onclick="setTime('{{ s }}', this)">{{ s }}</li>
+          {% empty %}
+          <li>No hay</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <script>
+      function setTime(slot, element) {
+        const timeInput = document.querySelector('input[type="time"]');
+        if (timeInput) {
+          timeInput.value = slot;
+        }
+        document
+          .querySelectorAll("#slot-list li")
+          .forEach((li) => li.classList.remove("selected"));
+        element.classList.add("selected");
+      }
+
+      function abrirModal() {
+        document.getElementById("modal-confirmacion").style.display = "block";
+      }
+
+      function cerrarModal() {
+        document.getElementById("modal-confirmacion").style.display = "none";
+      }
+
+      function confirmarEnvio() {
+        document.querySelector("form").submit();
+      }
+    </script>
+
+    <!-- Modal de confirmación -->
+    <div
+      id="modal-confirmacion"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+      "
+    >
+      <div
+        style="
+          background: #fff;
+          padding: 30px;
+          max-width: 400px;
+          margin: 100px auto;
+          border-radius: 12px;
+          text-align: center;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        "
+      >
+        <h3>¿Confirmar reserva?</h3>
+        <p>¿Estás seguro de que deseas reservar este turno?</p>
+        <div style="margin-top: 20px">
+          <button
+            onclick="confirmarEnvio()"
+            style="
+              background-color: #007bff;
+              color: white;
+              padding: 10px 20px;
+              border: none;
+              border-radius: 8px;
+              margin-right: 10px;
+              cursor: pointer;
+            "
+          >
+            Confirmar
+          </button>
+          <button
+            onclick="cerrarModal()"
+            style="
+              background-color: #ccc;
+              color: black;
+              padding: 10px 20px;
+              border: none;
+              border-radius: 8px;
+              cursor: pointer;
+            "
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
