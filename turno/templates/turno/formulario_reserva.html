@@ -5,37 +5,142 @@
 {% block extra_head %}
 <style>
   .container {
-    max-width: 1000px;
-    margin: auto;
+    max-width: 900px;
+    margin: 40px auto;
     display: flex;
-    gap: 30px;
+    gap: 40px;
+    align-items: flex-start;
+    font-family: Arial, sans-serif;
   }
-  /* resto de CSS específico */
+
+  .form-box, .slots {
+    flex: 1;
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+
+  .form-box h2, .slots h3 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .form-box label {
+    display: block;
+    font-weight: bold;
+    margin: 10px 0 5px;
+  }
+
+  .form-box input, .form-box select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 15px;
+  }
+
+  .form-box button {
+    width: 100%;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .form-box button:hover {
+    background: #0056b3;
+  }
+
+  .slot-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+  }
+
+  .slot-grid li {
+    list-style: none;
+    padding: 12px;
+    background: #f8f9fa;
+    border: 1px solid #ccc;
+    text-align: center;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .slot-grid li:hover {
+    background: #007bff;
+    color: #fff;
+    border-color: #007bff;
+  }
+
+  /* Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+  }
+  .modal-content {
+    background: #fff;
+    padding: 30px;
+    max-width: 400px;
+    margin: 100px auto;
+    border-radius: 12px;
+    text-align: center;
+  }
+  .modal-content button {
+    margin: 10px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<h2>
-  Formulario de reserva{% if barbero %} con {{ barbero.nombre }}{% endif %}
-</h2>
-
-{% if error %}
-<p style="color: red">{{ error }}</p>
-{% endif %}
-
 <div class="container">
-  <form method="post">
-    {% csrf_token %} {{ form.as_p }}
-    <button type="button" onclick="abrirModal()">Reservar</button>
-  </form>
+  <div class="form-box">
+    <h2>Elegir fecha y hora{% if barbero %} con {{ barbero.nombre }}{% endif %}</h2>
+
+    {% if error %}
+      <p style="color: red; text-align:center;">{{ error }}</p>
+    {% endif %}
+
+    <form method="post" id="reservaForm" onsubmit="return validarFormulario()">
+      {% csrf_token %}
+
+      {{ form.fecha.label_tag }}
+      {{ form.fecha }}
+
+      {{ form.hora.label_tag }}
+      {{ form.hora }}
+
+      {{ form.nombre_cliente.label_tag }}
+      {{ form.nombre_cliente }}
+
+      {{ form.correo_cliente.label_tag }}
+      {{ form.correo_cliente }}
+
+      <p id="error-msg" style="color:red; text-align:center; display:none;"></p>
+
+      <button type="button" onclick="abrirModal()">Reservar</button>
+    </form>
+  </div>
 
   <div class="slots">
-    <h3>Horarios disponibles hoy:</h3>
-    <ul id="slot-list">
+    <h3>Horarios disponibles:</h3>
+    <ul id="slot-list" class="slot-grid">
       {% for s in slots %}
-      <li onclick="setTime('{{ s }}', this)">{{ s }}</li>
+        <li onclick="setTime('{{ s }}', this)">{{ s }}</li>
       {% empty %}
-      <li>No hay</li>
+        <li>No hay horarios</li>
       {% endfor %}
     </ul>
   </div>
@@ -44,18 +149,105 @@
 
 {% block scripts %}
 <script>
-  function setTime(slot, el) { /* ... */ }
-  function abrirModal() { document.getElementById("modal-confirmacion").style.display = "block"; }
-  function cerrarModal() { document.getElementById("modal-confirmacion").style.display = "none"; }
-  function confirmarEnvio() { document.querySelector("form").submit(); }
+ function setTime(slot, el) {
+  let campoHora = document.getElementById("id_hora");
+
+  if (campoHora) {
+    // Si es un <select>
+    if (campoHora.tagName === "SELECT") {
+      [...campoHora.options].forEach(opt => {
+        opt.selected = (opt.value === slot);
+      });
+    } 
+    // Si es un <input type="time">
+    else {
+      campoHora.value = slot;
+    }
+  }
+
+  // Cambiar estilos en la lista de horarios
+  document.querySelectorAll("#slot-list li").forEach(li => {
+    li.style.background = "#f8f9fa";
+    li.style.color = "#000";
+  });
+  el.style.background = "#007bff";
+  el.style.color = "#fff";
+}
+
+
+  function validarFormulario() {
+    let fecha = document.getElementById("id_fecha").value;
+    let hora = document.getElementById("id_hora").value;
+    let nombre = document.getElementById("id_nombre_cliente").value.trim();
+    let correo = document.getElementById("id_correo_cliente").value.trim();
+    let errorMsg = document.getElementById("error-msg");
+
+    errorMsg.style.display = "none";
+    errorMsg.textContent = "";
+
+    if (!fecha) {
+      errorMsg.textContent = "⚠️ La fecha es obligatoria";
+      errorMsg.style.display = "block";
+      return false;
+    }
+    if (!hora) {
+      errorMsg.textContent = "⚠️ Debes seleccionar una hora";
+      errorMsg.style.display = "block";
+      return false;
+    }
+    if (!nombre) {
+      errorMsg.textContent = "⚠️ El nombre es obligatorio";
+      errorMsg.style.display = "block";
+      return false;
+    }
+    if (correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+      errorMsg.textContent = "⚠️ El correo no es válido";
+      errorMsg.style.display = "block";
+      return false;
+    }
+    return true;
+  }
+
+  function abrirModal() {
+    if (validarFormulario()) {
+      document.getElementById("modal-confirmacion").style.display = "block";
+    }
+  }
+  function cerrarModal() {
+    document.getElementById("modal-confirmacion").style.display = "none";
+  }
+  function confirmarEnvio() {
+    if (validarFormulario()) {
+      document.getElementById("reservaForm").submit();
+      cerrarModal();
+      abrirModalExito();
+    }
+  }
+
+  function abrirModalExito() {
+    document.getElementById("modal-exito").style.display = "block";
+  }
+  function cerrarModalExito() {
+    document.getElementById("modal-exito").style.display = "none";
+  }
 </script>
 
-<div id="modal-confirmacion" style="display:none; position:fixed;">
-  <div style="background:#fff; padding:30px; max-width:400px; margin:100px auto;">
+<!-- Modal de confirmación -->
+<div id="modal-confirmacion" class="modal">
+  <div class="modal-content">
     <h3>¿Confirmar reserva?</h3>
     <p>¿Estás seguro de que deseas reservar este turno?</p>
-    <button onclick="confirmarEnvio()">Confirmar</button>
+    <button onclick="confirmarEnvio()" style="background:#007bff; color:#fff;">Confirmar</button>
     <button onclick="cerrarModal()">Cancelar</button>
+  </div>
+</div>
+
+<!-- Modal de éxito -->
+<div id="modal-exito" class="modal">
+  <div class="modal-content">
+    <h3>✅ ¡Reserva exitosa!</h3>
+    <p>Tu turno ha sido reservado correctamente.</p>
+    <button onclick="cerrarModalExito()" style="background:#28a745; color:#fff;">Aceptar</button>
   </div>
 </div>
 {% endblock %}

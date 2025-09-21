@@ -9,7 +9,7 @@
 
 {% block content %}
   <h2 class="bienvenida">Bienvenido, {{ user.first_name }} {{ user.last_name }} </h2>
-  <p>ultimo acceso: {{ user.last_login }}</p>
+  <p>Último acceso: {{ user.last_login }}</p>
 
   <div class="dashboard-container">
 
@@ -20,14 +20,14 @@
         <img src="https://via.placeholder.com/150" alt="image_barbero">
         <h3>Juan Pérez</h3>
         <p>Especialista en cortes modernos y degradados.</p>
-        <a href="#" class="btn-reservar">Reservar turno</a>
+        <a href="{% url 'turno:formulario_reserva' 1 %}" class="btn-reservar">Reservar turno</a>
       </div>
 
       <div class="barbero-card">
         <img src="https://via.placeholder.com/150" alt="image_barbero">
         <h3>Luis Gómez</h3>
         <p>Experto en barbería clásica y cuidado de barba.</p>
-        <a href="#" class="btn-reservar">Reservar turno</a>
+        <a href="{% url 'turno:formulario_reserva' 2 %}" class="btn-reservar">Reservar turno</a>
       </div>
     </div>
   </div>
