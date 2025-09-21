@@ -1,0 +1,230 @@
+/* --- Contenedor general --- */
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    text-align: center;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #d4a574, #c49660, #b8864d);
+    z-index: 1;
+}
+
+.bienvenida {
+    text-align: center;
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-top: 20px;
+    margin-bottom: 8px;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    position: relative;
+}
+
+.bienvenida + p {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 40px;
+    font-style: italic;
+}
+
+
+@keyframes rotate {
+    0%, 100% { transform: translateY(-50%) rotate(0deg); }
+    50% { transform: translateY(-50%) rotate(15deg); }
+}
+
+.subtitulo {
+    font-size: 1.2rem;
+    color: #495057;
+    margin-bottom: 40px;
+    font-weight: 500;
+    position: relative;
+}
+
+.subtitulo::before {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #d4a574, #b8864d);
+    border-radius: 2px;
+}
+
+/* --- Grid de barberos --- */
+.barberos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 50px;
+    perspective: 1000px;
+}
+
+/* --- Tarjeta individual --- */
+.barbero-card {
+    background: linear-gradient(145deg, #ffffff, #f8f9fa);
+    padding: 30px 25px;
+    border-radius: 20px;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.12),
+        0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(212, 165, 116, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.barbero-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #d4a574, #c49660, #b8864d);
+    transform: translateX(-100%);
+    transition: transform 0.4s ease;
+}
+
+.barbero-card:hover::before {
+    transform: translateX(0);
+}
+
+.barbero-card img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 20px;
+    border: 4px solid #f8f9fa;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    position: relative;
+}
+
+.barbero-card:hover img {
+    transform: scale(1.1);
+    border-color: #d4a574;
+    box-shadow: 0 12px 25px rgba(212, 165, 116, 0.3);
+}
+
+.barbero-card h3 {
+    margin-bottom: 12px;
+    color: #2c3e50;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    position: relative;
+}
+/* 
+
+/* --- Botón de reserva --- */
+.btn-reservar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    background: linear-gradient(135deg, #d4a574, #b8864d);
+    color: #fff;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.3px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(212, 165, 116, 0.4);
+    text-transform: uppercase;
+    min-width: 160px;
+}
+
+.btn-reservar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-reservar:hover::before {
+    left: 100%;
+}
+
+.btn-reservar:hover {
+    background: linear-gradient(135deg, #b8864d, #a67542);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(212, 165, 116, 0.5);
+}
+
+.btn-reservar:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 15px rgba(212, 165, 116, 0.4);
+}
+
+/* --- Responsividad mejorada --- */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 30px 15px;
+        margin: 10px;
+    }
+    
+    .titulo {
+        font-size: 2.2rem;
+    }
+    
+    .titulo::after {
+        right: -35px;
+        font-size: 1.2rem;
+    }
+    
+    .barberos-grid {
+        grid-template-columns: 1fr;
+        gap: 25px;
+        margin-top: 35px;
+    }
+    
+    .barbero-card {
+        padding: 25px 20px;
+    }
+    
+    .bienvenida {
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .titulo {
+        font-size: 1.8rem;
+    }
+    
+    .titulo::after {
+        display: none;
+    }
+    
+    .barbero-card img {
+        width: 100px;
+        height: 100px;
+    }
+}

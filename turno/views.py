@@ -4,15 +4,16 @@ from .forms import FormularioReserva
 from .utils import available_slots_for_barber, is_slot_available
 from datetime import time, date as date_cls
 from .estructura import ListaTurnos
-
+from django.contrib.auth.decorators import login_required
 
 INICIO_TRABAJO = time(8, 0)
 FIN_TRABAJO = time(17, 0)
 RANGO_ATENCION = 60
 
 
-def home(request):
-    return render(request, "turno/home.html")
+@login_required()
+def dashboard(request):
+    return render(request, "turno/dashboard.html")
 
 
 # Instancia global (por ejemplo)

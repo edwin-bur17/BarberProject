@@ -1,0 +1,20 @@
+{% extends "turno/base.html" %}
+{% load static %}
+
+{% block title %}Iniciar sesión{% endblock %}
+
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/login.css' %}">{% endblock %}
+
+{% block content %}
+  <h2 class="titulo-login">Login</h2>
+
+  {% if form.errors %}
+    <p class="error">Usuario o contraseña incorrectos</p>
+  {% endif %}
+
+  <form method="post" class="form-login">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn-login">Ingresar</button>
+  </form>
+{% endblock %}

@@ -1,0 +1,126 @@
+body {
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  background-color: #f0f2f5;
+  margin: 0;
+  padding: 20px;
+}
+|
+h2 {
+  text-align: center;
+  color: #222;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+}
+
+p[style*="color:red"] {
+  color: red;
+  font-weight: bold;
+  text-align: center;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 30px;
+  max-width: 1000px;
+  margin: 0 auto;
+  flex-wrap: wrap; /* para móviles se apilen */
+}
+
+form {
+  flex: 1;
+  min-width: 300px;
+  background-color: #fff;
+  padding: 25px 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+form p {
+  margin-bottom: 15px;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  box-sizing: border-box;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+  outline: none;
+}
+
+form button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #007bff, #0056d2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transition: background 0.3s, transform 0.2s;
+}
+
+form button:hover {
+  background: linear-gradient(135deg, #0056d2, #003a99);
+  transform: translateY(-2px);
+}
+
+.slots {
+  flex: 1;
+  min-width: 300px;
+}
+
+.slots h3 {
+  text-align: center;
+  color: #444;
+  margin-bottom: 15px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 15px;
+}
+
+ul li {
+  background-color: #fff;
+  padding: 14px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, background 0.3s, color 0.3s;
+  cursor: pointer;
+}
+
+ul li:hover {
+  background: #007bff;
+  color: #fff;
+  transform: scale(1.05);
+}
+
+ul li.selected {
+  background: #007bff;
+  color: #fff;
+}

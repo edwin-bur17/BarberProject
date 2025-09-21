@@ -74,3 +74,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Redirección después de login y logout
+LOGIN_REDIRECT_URL = 'turno:dashboard'
+LOGOUT_REDIRECT_URL = 'turno:login'
