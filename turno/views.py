@@ -1,165 +1,162 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Barbero, Reserva
-from .forms import FormularioReserva
-from .utils import available_slots_for_barber, is_slot_available, FRANJAS
-from datetime import time, date as date_cls
-from .estructura import ListaTurnos
 from django.contrib.auth.decorators import login_required
-from datetime import datetime
-
-INICIO_TRABAJO = time(8, 0)
-FIN_TRABAJO = time(17, 0)
-RANGO_ATENCION = 60
+from django.utils import timezone
+from .models import Barbero, Reserva
+from datetime import datetime, time, timedelta
 
 
-@login_required()
+# ========================
+# DASHBOARD GENERAL
+# ========================
+@login_required
+def panel_barbero(request):
+    # Relacionar al usuario logueado con un barbero
+    barbero = get_object_or_404(Barbero, usuario=request.user)
+
+    fecha = timezone.localdate()
+
+    # Reservas de ese barbero para hoy
+    reservas = Reserva.objects.filter(
+        barbero=barbero,
+        fecha=fecha
+    ).order_by("hora_inicio")
+
+    return render(request, "turno/panel_barbero.html", {
+        "barbero": barbero,
+        "fecha": fecha,
+        "reservas": reservas
+    })
+
+@login_required
 def dashboard(request):
-    barberos = Barbero.objects.all()  
-    return render(request, "turno/dashboard.html", {'barberos': barberos})
-
-
-# Instancia global (por ejemplo)
-lista_turnos = ListaTurnos()
-
-# Formulario seleccionar barbero
-def seleccionar_barbero(request):
-    if request.method == "POST":
-        id_barbero = request.POST.get("barbero")
-        if id_barbero:
-            return redirect("turno:formulario_reserva", id_barbero=id_barbero)
-
     barberos = Barbero.objects.all()
+    return render(request, "turno/dashboard.html", {"barberos": barberos})
 
-    return render(request, "turno/seleccionar_barbero.html", {"barberos": barberos})
 
-# Agenda del barbero
+# ========================
+# CREAR RESERVA
+# ========================
+@login_required
+def crear_reserva(request):
+    if request.method == "POST":
+        fecha = request.POST.get("fecha")
+        hora_inicio = request.POST.get("hora_inicio")
+        hora_fin = request.POST.get("hora_fin")
+        id_barbero = request.POST.get("id_barbero")
+
+        barbero = get_object_or_404(Barbero, id=id_barbero)
+
+        # Crear la reserva
+        reserva = Reserva.objects.create(
+            cliente=request.user,
+            barbero=barbero,
+            fecha=fecha,
+            hora_inicio=hora_inicio,
+            hora_fin=hora_fin,
+        )
+
+        return redirect("turno:reserva_confirmada", reserva_id=reserva.id)
+
+    return redirect("turno:dashboard")
+
+
+@login_required
+def reserva_confirmada(request, reserva_id):
+    """Muestra la confirmación de una reserva ya creada."""
+    reserva = get_object_or_404(Reserva, id=reserva_id, cliente=request.user)
+    return render(request, "turno/reserva_confirmada.html", {"reserva": reserva})
+
+
+# ========================
+# AGENDA POR BARBERO (vista cliente)
+# ========================
+@login_required
 def agenda_barbero(request, id_barbero):
-    fecha_str = request.GET.get('fecha')
-    if fecha_str:
-        fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
-    else:
-        # Si no viene parámetro, usar hoy
-        fecha = date_cls.today()
+    barbero = get_object_or_404(Barbero, id=id_barbero)
+    fecha = timezone.localdate()
 
-    barbero = Barbero.objects.get(id=id_barbero)
-
-    # Reservas existentes
-    reservas = Reserva.objects.filter(barbero=barbero, fecha=fecha)
-    ocupados = {r.hora_inicio for r in reservas}
-
-    # Generar lista con estado
+    # Generar slots de 1h de 8 a 17
     slots = []
-    for inicio, fin in FRANJAS:
+    inicio = time(8, 0)
+    fin = time(18, 0)
+
+    actual = datetime.combine(fecha, inicio)
+    while actual.time() < fin:
+        slot_inicio = actual.time()
+        slot_fin = (actual + timedelta(hours=1)).time()
+
+        existe_reserva = Reserva.objects.filter(
+            barbero=barbero,
+            fecha=fecha,
+            hora_inicio=slot_inicio,
+            hora_fin=slot_fin
+        ).exists()
+
         slots.append({
-            "inicio": inicio,
-            "fin": fin,
-            "disponible": inicio not in ocupados
+            "inicio": slot_inicio,
+            "fin": slot_fin,
+            "disponible": not existe_reserva
         })
+        actual += timedelta(hours=1)
+
+    # verificar si el usuario ya tiene reserva con este barbero hoy
+    reserva_usuario = Reserva.objects.filter(
+        cliente=request.user,
+        barbero=barbero,
+        fecha=fecha
+    ).first()
 
     return render(request, "turno/agenda_barbero.html", {
         "barbero": barbero,
         "fecha": fecha,
-        "slots": slots
+        "slots": slots,
+        "reserva_usuario": reserva_usuario
     })
 
-# Formulario de hacer una reserva
-def formulario_reserva(request, id_barbero):
-    # Manejo seguro del barber_id
-    barber = None
-    if id_barbero and str(id_barbero).isdigit() and int(id_barbero) != 0:
-        barber = Barbero.objects.filter(id=id_barbero).first()
 
-    # Formulario:
+# ========================
+# CANCELAR RESERVA
+# ========================
+@login_required
+def cancelar_reserva(request, reserva_id):
+    reserva = get_object_or_404(Reserva, id=reserva_id, cliente=request.user)
     if request.method == "POST":
-        form = FormularioReserva(request.POST)
-        if form.is_valid():
-            d = form.cleaned_data["fecha"]
-            t = form.cleaned_data["hora"]
-            nombre = form.cleaned_data["nombre_cliente"]
-            correo = form.cleaned_data["correo_cliente"]
+        reserva.delete()
+        return redirect("turno:dashboard")
+    return render(request, "turno/cancelar_reserva.html", {"reserva": reserva})
 
-            if barber is None:
-                # Buscar primer barbero disponible
-                for b in Barbero.objects.all():
-                    if is_slot_available(b, d, t, duration_minutes=RANGO_ATENCION):
-                        barber = b
-                        break
-                if not barber:
-                    return render(
-                        request,
-                        "turno/formulario_reserva.html",
-                        {"form": form, "error": "No hay disponibilidad"},
-                    )
-            else:
-                if not is_slot_available(barber, d, t, duration_minutes=RANGO_ATENCION):
-                    return render(
-                        request,
-                        "turno/formulario_reserva.html",
-                        {"form": form, "error": "No disponible"},
-                    )
 
-            #  Guardar en lista en memoria
-            lista_turnos.agregar_turno(
-                cliente=nombre,
-                fecha=d,
-                hora=t,
-                correo=correo,
-                id_barbero=id_barbero,
-            )
-
-            return redirect("turno:reserva_confirmada")
-    else:
-        form = FormularioReserva(initial={"date": date_cls.today()})
-
-    slots = []
-    if barber:
-        today = date_cls.today()
-        slots = available_slots_for_barber(
-            barber, today, INICIO_TRABAJO, FIN_TRABAJO, RANGO_ATENCION, RANGO_ATENCION
-        )
-
-    return render(
-        request,
-        "turno/formulario_reserva.html",
-        {"form": form, "barbero": barber, "slots": slots},
-    )
-
-# turnos por barbero
+# ========================
+# AGENDA DEL BARBERO (su vista interna)
+# ========================
+@login_required
 def turnos_barbero(request, id_barbero):
+    """Agenda del barbero: lista todas sus reservas (pendientes o atendidas)."""
     barbero = get_object_or_404(Barbero, id=id_barbero)
-    turnos = lista_turnos.mostrar_turnos_barbero(int(id_barbero))
-    print("turnos -->", turnos)
-    return render(
-        request, "turno/ver_turnos_barbero.html", {"turnos": turnos, "barbero": barbero}
-    )
+    turnos = Reserva.objects.filter(barbero=barbero).order_by("fecha", "hora_inicio")
+    return render(request, "turno/turnos_barbero.html", {
+        "barbero": barbero,
+        "turnos": turnos,
+    })
 
-# vista de reserva confirmada
-def reserva_confirmada(request):
-    return render(request, "turno/reserva_confirmada.html")
 
-# tablero de los peluqueros
+@login_required
+def atender_turno(request, id_barbero, reserva_id):
+    """Marcar una reserva como atendida."""
+    barbero = get_object_or_404(Barbero, id=id_barbero)
+    turno = get_object_or_404(Reserva, id=reserva_id, barbero=barbero)
+
+    turno.atendido = True
+    turno.save()
+
+    return redirect("turno:turnos_barbero", id_barbero=barbero.id)
+
+
+# ========================
+# DASHBOARD DE BARBEROS (vista rápida)
+# ========================
+@login_required
 def barbero_dashboard(request):
-    barberos = Barbero.objects.all()
-    print("barberos -->", barberos)
-    return render(request, "turno/barbero_dashboard.html", {"barberos": barberos})
-
-
-# Marca un turno como atendido y lo elimina de la lista
-def atender_turno(request, id_barbero, cliente_nombre):
-    """
-    Marca un turno como atendido y lo elimina de la lista
-    """
-    if request.method == "POST":
-        # # Verificar que el barbero existe
-        # barbero = get_object_or_404(Barbero, id=id_barbero)
-
-        # Procesar el turno (marcar como atendido y eliminar)
-        resultado = lista_turnos.atender_turno(cliente_nombre, int(id_barbero))
-
-        if not resultado:
-            pass
-
-        return redirect("turno:turnos_barbero", id_barbero=id_barbero)
-
-    # Si no es POST, redireccionar sin hacer nada
-    return redirect("turno:turnos_barbero", id_barbero=id_barbero)
+    barbero = get_object_or_404(Barbero, usuario=request.user)
+    reservas = Reserva.objects.filter(barbero=barbero, fecha=timezone.localdate())
+    return render(request, "turno/barbero_dashboard.html", {"reservas": reservas})

@@ -1,33 +1,93 @@
-body {
+z/* Reset básico */
+* {
   margin: 0;
-  font-family: Arial, sans-serif;
+  padding: 0;
+  box-sizing: border-box;
 }
 
+/* Body */
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f5f6f7;
+  color: #333;
+}
+
+/* Navbar */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #350b6f;
-  padding: 0.75rem 1.5rem;
+  background-color: #0d6efd; /* Azul principal */
+  padding: 12px 24px;
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
 }
 
-.app-name {
+.navbar-left .app-name {
   color: #fff;
   text-decoration: none;
-  font-size: 1.4rem;
+  font-size: 20px;
   font-weight: bold;
 }
 
+.navbar-right form {
+  margin: 0;
+}
+
 .btn-logout {
-  background-color: #e74c3c;
-  border: none;
+  background-color: #dc3545; /* Rojo */
   color: #fff;
-  padding: 0.5rem 1rem;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
   cursor: pointer;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  font-weight: bold;
+  transition: background 0.2s ease;
 }
 
 .btn-logout:hover {
-  background-color: #c0392b;
+  background-color: #b02a37;
+}
+
+/* Main */
+main {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 20px;
+}
+
+/* Botón genérico (ej: Inicio) */
+.btn-primary {
+  display: inline-block;
+  background-color: #0d6efd; /* Azul */
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: #0b5ed7;
+}
+
+/* Para reutilizar en tablas */
+.btn-success {
+  background-color: #28a745; /* Verde */
+  color: #fff;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+}
+
+.btn-danger {
+  background-color: #dc3545; /* Rojo */
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background-color: #b02a37;
 }

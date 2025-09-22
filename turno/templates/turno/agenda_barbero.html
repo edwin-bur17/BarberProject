@@ -1,31 +1,107 @@
 {% extends "turno/base.html" %}
-<!-- {% load static %} -->
 
 {% block title %}Agenda{% endblock %}
 
-<!-- {% block extra_head %}<link rel="stylesheet" href="{% static 'css/agenda.css' %}">{% endblock %} -->
+{% block extra_head %}
+<style>
+  h2 {
+    text-align: center;
+    font-size: 26px;
+    margin: 30px 0 20px;
+    font-weight: bold;
+    color: #0d6efd;
+  }
+
+  .agenda-grid {
+    max-width: 1000px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+  }
+
+  .card {
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    font-weight: bold;
+    transition: transform 0.2s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+  }
+
+  .card.disponible {
+    background: #d4edda; /* verde clarito */
+    color: #155724;
+  }
+
+  .card.ocupado {
+    background: #f8d7da; /* rojo clarito */
+    color: #721c24;
+  }
+
+  .card p {
+    margin-bottom: 10px;
+  }
+
+  .btn {
+    background-color: #0d6efd;
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .btn:hover {
+    background-color: #0b5ed7;
+  }
+
+  .text-sm {
+    font-size: 14px;
+    font-weight: normal;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<h2>Agenda de {{ barbero.nombre }} - {{ fecha }}</h2>
+<h2>Agenda de {{ barbero.nombre }} - {{ fecha|date:"j \\d\\e F \\d\\e Y" }}</h2>
 
-<div class="grid grid-cols-3 gap-4">
-{% for slot in slots %}
-  <div class="card p-4 {% if slot.disponible %}bg-green-200{% else %}bg-red-300{% endif %}">
-    <p>{{ slot.inicio }} - {{ slot.fin }}</p>
-    {% if slot.disponible %}
-
-        <form method="post" action="{% url 'turno:reserva_confirmada' %}">
+<div class="agenda-grid">
+  {% if reserva_usuario %}
+    <!-- Mostrar turno del usuario -->
+    <div class="card ocupado">
+      <p>Ya tienes un turno reservado:</p>
+      <p>{{ reserva_usuario.hora_inicio }} - {{ reserva_usuario.hora_fin }}</p>
+      <form method="post" action="{% url 'turno:cancelar_reserva' reserva_usuario.id %}">
         {% csrf_token %}
-        <input type="hidden" name="fecha" value="{{ fecha }}">
-        <input type="hidden" name="hora_inicio" value="{{ slot.inicio }}">
-        <input type="hidden" name="hora_fin" value="{{ slot.fin }}">
-        <button type="submit" class="btn">Reservar</button>
+        <button type="submit" class="btn">Cancelar turno</button>
       </form>
-    {% else %}
-      <p class="text-sm">Ocupado</p>
-    {% endif %}
-  </div>
-{% endfor %}
+    </div>
+  {% else %}
+    <!-- Mostrar grilla de turnos -->
+    {% for slot in slots %}
+      <div class="card {% if slot.disponible %}disponible{% else %}ocupado{% endif %}">
+        <p>{{ slot.inicio }} - {{ slot.fin }}</p>
+        {% if slot.disponible %}
+          <form method="post" action="{% url 'turno:crear_reserva' %}">
+            {% csrf_token %}
+            <input type="hidden" name="fecha" value="{{ fecha|date:'Y-m-d' }}">
+            <input type="hidden" name="hora_inicio" value="{{ slot.inicio|time:'H:i' }}">
+            <input type="hidden" name="hora_fin" value="{{ slot.fin|time:'H:i' }}">
+            <input type="hidden" name="id_barbero" value="{{ barbero.id }}">
+            <button type="submit" class="btn">Reservar</button>
+          </form>
+        {% else %}
+          <p class="text-sm">Ocupado</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% endif %}
 </div>
-
 {% endblock %}

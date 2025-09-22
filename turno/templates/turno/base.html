@@ -4,7 +4,130 @@
 <head>
   <meta charset="utf-8">
   <title>{% block title %}Barbería{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+
+  <style>
+    /* Reset básico */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #f5f6f7;
+      color: #333;
+    }
+
+    /* Navbar */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #0d6efd; /* Azul */
+      padding: 12px 24px;
+      box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar-left .app-name {
+      color: #fff;
+      text-decoration: none;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .btn-logout {
+      background-color: #dc3545; /* Rojo */
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s ease;
+    }
+
+    .btn-logout:hover {
+      background-color: #b02a37;
+    }
+
+    /* Main */
+    main {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+
+    /* Botón genérico */
+    .btn-primary {
+      display: inline-block;
+      background-color: #0d6efd; /* Azul */
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      background-color: #0b5ed7;
+    }
+
+    .btn-success {
+      background-color: #28a745; /* Verde */
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-success:hover {
+      background-color: #218838;
+    }
+
+    .btn-danger {
+      background-color: #dc3545; /* Rojo */
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-danger:hover {
+      background-color: #b02a37;
+    }
+
+    /* Estilos para tablas */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    thead {
+      background-color: #0d6efd;
+      color: white;
+    }
+
+    th, td {
+      padding: 14px;
+      text-align: center;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+  </style>
+
   {% block extra_head %}{% endblock %}
 </head>
 <body>

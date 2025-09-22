@@ -1,0 +1,28 @@
+{% extends "turno/base.html" %}
+
+{% block title %}Panel de {{ barbero.nombre }}{% endblock %}
+
+{% block content %}
+<h2>Turnos de {{ barbero.nombre }} - {{ fecha|date:"j \\d\\e F \\d\\e Y" }}</h2>
+
+{% if reservas %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Cliente</th>
+        <th>Horario</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in reservas %}
+        <tr>
+          <td>{{ r.cliente.username }}</td>
+          <td>{{ r.hora_inicio }} - {{ r.hora_fin }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No tienes reservas para hoy.</p>
+{% endif %}
+{% endblock %}

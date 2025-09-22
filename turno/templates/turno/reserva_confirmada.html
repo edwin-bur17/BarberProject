@@ -21,13 +21,13 @@
       border-radius: 15px;
       text-align: center;
       box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-      max-width: 420px;
+      max-width: 450px;
     }
 
     h2 {
       font-size: 1.8rem;
       color: #28a745;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
 
     .check {
@@ -36,7 +36,13 @@
       margin-bottom: 20px;
     }
 
-    a {
+    p {
+      font-size: 1rem;
+      margin: 8px 0;
+      color: #333;
+    }
+
+    .btn {
       display: inline-block;
       margin-top: 15px;
       padding: 12px 24px;
@@ -46,11 +52,22 @@
       border-radius: 8px;
       font-weight: bold;
       transition: background 0.3s, transform 0.2s;
+      border: none;
+      cursor: pointer;
     }
 
-    a:hover {
+    .btn:hover {
       background: linear-gradient(135deg, #0056d2, #003a99);
       transform: translateY(-2px);
+    }
+
+    .btn-cancelar {
+      background: linear-gradient(135deg, #dc3545, #a71d2a);
+      margin-left: 10px;
+    }
+
+    .btn-cancelar:hover {
+      background: linear-gradient(135deg, #a71d2a, #721c24);
     }
   </style>
 </head>
@@ -58,7 +75,21 @@
   <div class="card">
     <div class="check">✅</div>
     <h2>Reserva confirmada</h2>
-    <a href="{% url 'turno:dashboard' %}">Volver al inicio</a>
+
+    {% if reserva %}
+      <p><strong>Barbero:</strong> {{ reserva.barbero.nombre }}</p>
+      <p><strong>Fecha:</strong> {{ reserva.fecha }}</p>
+      <p><strong>Horario:</strong> {{ reserva.hora_inicio }} - {{ reserva.hora_fin }}</p>
+
+      <!-- Botón para cancelar esta misma reserva -->
+      <form method="post" action="{% url 'turno:cancelar_reserva' reserva.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-cancelar">Cancelar reserva</button>
+      </form>
+    {% endif %}
+
+    <!-- Volver al dashboard -->
+    <a href="{% url 'turno:dashboard' %}" class="btn">Volver al inicio</a>
   </div>
 </body>
 </html>

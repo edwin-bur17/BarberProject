@@ -1,6 +1,5 @@
-from datetime import timedelta, datetime
-from .models import Reservation
-from datetime import time
+from datetime import timedelta, datetime, time
+from .models import Reserva
 
 FRANJAS = [
     (time(8, 0), time(9, 0)),
@@ -15,29 +14,30 @@ FRANJAS = [
 ]
 
 
-def is_slot_available(barber, date, time_obj, duration_minutes=30):
-    requested_start = datetime.combine(date, time_obj)
-    requested_end = requested_start + timedelta(minutes=duration_minutes)
-    reservations = Reservation.objects.filter(barber=barber, date=date).exclude(
-        status="X"
-    )
-    for r in reservations:
-        r_start = datetime.combine(r.date, r.time)
-        r_end = r_start + timedelta(minutes=r.duration_minutes)
-        if requested_start < r_end and r_start < requested_end:
+def is_slot_available(barbero, fecha, hora_inicio, hora_fin):
+    """
+    Verifica si un barbero tiene libre la franja [hora_inicio, hora_fin] en una fecha.
+    """
+    reservas = Reserva.objects.filter(barbero=barbero, fecha=fecha)
+
+    for r in reservas:
+        # Si hay cruce de horarios, el slot NO está disponible
+        if hora_inicio < r.hora_fin and r.hora_inicio < hora_fin:
             return False
     return True
 
 
-def available_slots_for_barber(
-    barber, date, start_time, end_time, interval_minutes=30, duration_minutes=30
-):
+def available_slots_for_barber(barbero, fecha):
+    """
+    Retorna una lista de slots disponibles para un barbero en una fecha específica.
+    Cada slot es un diccionario con inicio, fin y disponibilidad.
+    """
     slots = []
-    dt = datetime.combine(date, start_time)
-    end_dt = datetime.combine(date, end_time)
-    while dt + timedelta(minutes=duration_minutes) <= end_dt:
-        t = dt.time()
-        if is_slot_available(barber, date, t, duration_minutes):
-            slots.append(t)
-        dt += timedelta(minutes=interval_minutes)
+    for inicio, fin in FRANJAS:
+        disponible = is_slot_available(barbero, fecha, inicio, fin)
+        slots.append({
+            "inicio": inicio,
+            "fin": fin,
+            "disponible": disponible,
+        })
     return slots
