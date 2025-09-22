@@ -12,23 +12,29 @@
   <p>ultimo acceso: {{ user.last_login }}</p>
 
   <div class="dashboard-container">
-
-    <p class="subtitulo">Estos son nuestros barberos disponibles:</p>
-
-    <div class="barberos-grid">
-      <div class="barbero-card">
-        <img src="https://via.placeholder.com/150" alt="image_barbero">
-        <h3>Juan Pérez</h3>
-        <p>Especialista en cortes modernos y degradados.</p>
-        <a href="#" class="btn-reservar">Reservar turno</a>
+    
+    {% if user.is_superuser %}
+      <!-- Vista para superusuarios (barberos) -->
+      <div class="vista-barbero">
+        <h3>Vista de barbero</h3>
+        <p>Panel de control para barberos</p>
+        <!-- Aquí puedes agregar más contenido específico para barberos -->
       </div>
-
-      <div class="barbero-card">
-        <img src="https://via.placeholder.com/150" alt="image_barbero">
-        <h3>Luis Gómez</h3>
-        <p>Experto en barbería clásica y cuidado de barba.</p>
-        <a href="#" class="btn-reservar">Reservar turno</a>
+    {% else %}
+      <!-- Vista para clientes regulares -->
+      <p class="subtitulo">Estos son nuestros barberos disponibles:</p>
+      
+      <div class="barberos-grid">
+        {% for barbero in barberos %}
+          <div class="barbero-card">
+            <img src="https://via.placeholder.com/150" alt="image_barbero">
+            <h3>{{ barbero.nombre }} {{ barbero.apellido }}</h3>
+            <p>{{ barbero.descripcion }}</p>
+            <a href="{% url 'turno:agenda_barbero' barbero.id %}" class="btn-reservar">Reservar turno</a>
+          </div>
+        {% endfor %}
       </div>
-    </div>
+    {% endif %}
+    
   </div>
 {% endblock %}

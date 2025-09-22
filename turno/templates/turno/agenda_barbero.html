@@ -1,0 +1,31 @@
+{% extends "turno/base.html" %}
+<!-- {% load static %} -->
+
+{% block title %}Agenda{% endblock %}
+
+<!-- {% block extra_head %}<link rel="stylesheet" href="{% static 'css/agenda.css' %}">{% endblock %} -->
+
+{% block content %}
+<h2>Agenda de {{ barbero.nombre }} - {{ fecha }}</h2>
+
+<div class="grid grid-cols-3 gap-4">
+{% for slot in slots %}
+  <div class="card p-4 {% if slot.disponible %}bg-green-200{% else %}bg-red-300{% endif %}">
+    <p>{{ slot.inicio }} - {{ slot.fin }}</p>
+    {% if slot.disponible %}
+
+        <form method="post" action="{% url 'turno:reserva_confirmada' %}">
+        {% csrf_token %}
+        <input type="hidden" name="fecha" value="{{ fecha }}">
+        <input type="hidden" name="hora_inicio" value="{{ slot.inicio }}">
+        <input type="hidden" name="hora_fin" value="{{ slot.fin }}">
+        <button type="submit" class="btn">Reservar</button>
+      </form>
+    {% else %}
+      <p class="text-sm">Ocupado</p>
+    {% endif %}
+  </div>
+{% endfor %}
+</div>
+
+{% endblock %}

@@ -11,8 +11,9 @@ urlpatterns = [
         "login/", auth_views.LoginView.as_view(template_name="turno/login.html"), name="login"
     ),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
-    path("/dashboard/", views.dashboard, name="dashboard"),
+    path("dashboard/", views.dashboard, name="dashboard"),
     path("reservar/", views.seleccionar_barbero, name="seleccionar_barbero"),
+    path("dashboard/agenda/<int:id_barbero>", views.agenda_barbero, name="agenda_barbero"),
     path(
         "reservar/formulario/<int:id_barbero>/",
         views.formulario_reserva,

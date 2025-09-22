@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Barbero
+from .models import Barbero, Reserva
 from .forms import FormularioReserva
-from .utils import available_slots_for_barber, is_slot_available
+from .utils import available_slots_for_barber, is_slot_available, FRANJAS
 from datetime import time, date as date_cls
 from .estructura import ListaTurnos
 from django.contrib.auth.decorators import login_required
+from datetime import datetime
 
 INICIO_TRABAJO = time(8, 0)
 FIN_TRABAJO = time(17, 0)
@@ -13,7 +14,8 @@ RANGO_ATENCION = 60
 
 @login_required()
 def dashboard(request):
-    return render(request, "turno/dashboard.html")
+    barberos = Barbero.objects.all()  
+    return render(request, "turno/dashboard.html", {'barberos': barberos})
 
 
 # Instancia global (por ejemplo)
@@ -29,6 +31,36 @@ def seleccionar_barbero(request):
     barberos = Barbero.objects.all()
 
     return render(request, "turno/seleccionar_barbero.html", {"barberos": barberos})
+
+# Agenda del barbero
+def agenda_barbero(request, id_barbero):
+    fecha_str = request.GET.get('fecha')
+    if fecha_str:
+        fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+    else:
+        # Si no viene parámetro, usar hoy
+        fecha = date_cls.today()
+
+    barbero = Barbero.objects.get(id=id_barbero)
+
+    # Reservas existentes
+    reservas = Reserva.objects.filter(barbero=barbero, fecha=fecha)
+    ocupados = {r.hora_inicio for r in reservas}
+
+    # Generar lista con estado
+    slots = []
+    for inicio, fin in FRANJAS:
+        slots.append({
+            "inicio": inicio,
+            "fin": fin,
+            "disponible": inicio not in ocupados
+        })
+
+    return render(request, "turno/agenda_barbero.html", {
+        "barbero": barbero,
+        "fecha": fecha,
+        "slots": slots
+    })
 
 # Formulario de hacer una reserva
 def formulario_reserva(request, id_barbero):
