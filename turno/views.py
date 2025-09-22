@@ -10,16 +10,22 @@ INICIO_TRABAJO = time(8, 0)
 FIN_TRABAJO = time(17, 0)
 RANGO_ATENCION = 60
 
-
-@login_required()
-def dashboard(request):
-    return render(request, "turno/dashboard.html")
-
-
-# Instancia global (por ejemplo)
+# Instancia global
 lista_turnos = ListaTurnos()
 
-# Formulario seleccionar barbero
+@login_required
+def dashboard(request):
+    """
+    Muestra el dashboard del usuario.
+    Si el usuario ya tiene un turno, se pasa al template para mostrar la opción de cancelarlo.
+    """
+    turno_usuario = lista_turnos.buscar_turno_por_correo(request.user.email)
+
+    context = {
+        "turno_usuario": turno_usuario,
+    }
+    return render(request, "turno/dashboard.html", context)
+
 def seleccionar_barbero(request):
     if request.method == "POST":
         id_barbero = request.POST.get("barbero")
@@ -27,17 +33,18 @@ def seleccionar_barbero(request):
             return redirect("turno:formulario_reserva", id_barbero=id_barbero)
 
     barberos = Barbero.objects.all()
-
     return render(request, "turno/seleccionar_barbero.html", {"barberos": barberos})
 
-# Formulario de hacer una reserva
 def formulario_reserva(request, id_barbero):
-    # Manejo seguro del barber_id
+    # Si el usuario ya tiene turno, redirigirlo al dashboard
+    turno_existente = lista_turnos.buscar_turno_por_correo(request.user.email)
+    if turno_existente:
+        return redirect("turno:dashboard")
+
     barber = None
     if id_barbero and str(id_barbero).isdigit() and int(id_barbero) != 0:
         barber = Barbero.objects.filter(id=id_barbero).first()
 
-    # Formulario:
     if request.method == "POST":
         form = FormularioReserva(request.POST)
         if form.is_valid():
@@ -47,7 +54,6 @@ def formulario_reserva(request, id_barbero):
             correo = form.cleaned_data["correo_cliente"]
 
             if barber is None:
-                # Buscar primer barbero disponible
                 for b in Barbero.objects.all():
                     if is_slot_available(b, d, t, duration_minutes=RANGO_ATENCION):
                         barber = b
@@ -66,7 +72,7 @@ def formulario_reserva(request, id_barbero):
                         {"form": form, "error": "No disponible"},
                     )
 
-            #  Guardar en lista en memoria
+            # Guardar en lista en memoria
             lista_turnos.agregar_turno(
                 cliente=nombre,
                 fecha=d,
@@ -92,42 +98,32 @@ def formulario_reserva(request, id_barbero):
         {"form": form, "barbero": barber, "slots": slots},
     )
 
-# turnos por barbero
 def turnos_barbero(request, id_barbero):
     barbero = get_object_or_404(Barbero, id=id_barbero)
     turnos = lista_turnos.mostrar_turnos_barbero(int(id_barbero))
-    print("turnos -->", turnos)
     return render(
         request, "turno/ver_turnos_barbero.html", {"turnos": turnos, "barbero": barbero}
     )
 
-# vista de reserva confirmada
 def reserva_confirmada(request):
     return render(request, "turno/reserva_confirmada.html")
 
-# tablero de los peluqueros
 def barbero_dashboard(request):
     barberos = Barbero.objects.all()
-    print("barberos -->", barberos)
     return render(request, "turno/barbero_dashboard.html", {"barberos": barberos})
 
-
-# Marca un turno como atendido y lo elimina de la lista
-def atender_turno(request, id_barbero, cliente_nombre):
+@login_required
+def cancelar_turno(request):
     """
-    Marca un turno como atendido y lo elimina de la lista
+    Cancela el turno del usuario logueado y lo redirige al dashboard.
     """
     if request.method == "POST":
-        # # Verificar que el barbero existe
-        # barbero = get_object_or_404(Barbero, id=id_barbero)
+        lista_turnos.eliminar_turno_por_correo(request.user.email)
+        return redirect("turno:dashboard")
+    return redirect("turno:dashboard")
 
-        # Procesar el turno (marcar como atendido y eliminar)
-        resultado = lista_turnos.atender_turno(cliente_nombre, int(id_barbero))
-
-        if not resultado:
-            pass
-
+def atender_turno(request, id_barbero, cliente_nombre):
+    if request.method == "POST":
+        lista_turnos.atender_turno(cliente_nombre, int(id_barbero))
         return redirect("turno:turnos_barbero", id_barbero=id_barbero)
-
-    # Si no es POST, redireccionar sin hacer nada
     return redirect("turno:turnos_barbero", id_barbero=id_barbero)

@@ -41,7 +41,7 @@ class ListaTurnos:
         turnos = []
         actual = self.head
         while actual:
-            if actual.id_barbero == id_barbero: 
+            if actual.id_barbero == id_barbero:
                 turnos.append({
                     "cliente": actual.cliente,
                     "fecha": actual.fecha,
@@ -51,22 +51,13 @@ class ListaTurnos:
                 })
             actual = actual.next
         return turnos
-   
+
     def eliminar_turno(self, cliente, id_barbero=None):
-        """
-        Elimina un turno de la lista. 
-        Si se proporciona id_barbero, busca específicamente ese turno.
-        """
         actual = self.head
         anterior = None
         
         while actual:
-            # Si se proporciona id_barbero, validar ambos campos
-            if id_barbero is not None:
-                condicion = (actual.cliente == cliente and actual.id_barbero == id_barbero)
-            else:
-                condicion = (actual.cliente == cliente)
-            
+            condicion = (actual.cliente == cliente and (id_barbero is None or actual.id_barbero == id_barbero))
             if condicion:
                 if anterior:
                     anterior.next = actual.next
@@ -78,17 +69,41 @@ class ListaTurnos:
         return False
 
     def atender_turno(self, cliente, id_barbero):
-        """
-        Marca un turno como atendido y lo elimina de la lista.
-        Esta es la función principal para procesar turnos atendidos.
-        """
-        # Primero verificar que el turno existe
         actual = self.head
         while actual:
             if actual.cliente == cliente and actual.id_barbero == id_barbero:
-                # Marcar como atendido (opcional, para logging antes de eliminar)
                 actual.estado = "Atendido"
-                # Eliminar de la lista
                 return self.eliminar_turno(cliente, id_barbero)
+            actual = actual.next
+        return False
+
+    # ✅ NUEVO MÉTODO - Buscar turno por correo
+    def buscar_turno_por_correo(self, correo):
+        actual = self.head
+        while actual:
+            if actual.correo == correo:
+                return {
+                    "cliente": actual.cliente,
+                    "fecha": actual.fecha,
+                    "hora": actual.hora,
+                    "correo": actual.correo,
+                    "id_barbero": actual.id_barbero,
+                    "estado": actual.estado
+                }
+            actual = actual.next
+        return None
+
+    # ✅ NUEVO MÉTODO - Eliminar turno por correo
+    def eliminar_turno_por_correo(self, correo):
+        actual = self.head
+        anterior = None
+        while actual:
+            if actual.correo == correo:
+                if anterior:
+                    anterior.next = actual.next
+                else:
+                    self.head = actual.next
+                return True
+            anterior = actual
             actual = actual.next
         return False

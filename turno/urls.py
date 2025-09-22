@@ -6,6 +6,8 @@ from django.views.generic.base import RedirectView
 app_name = "turno"
 
 urlpatterns = [
+    path("cancelar-turno/", views.cancelar_turno, name="cancelar_turno"),
+
      path('', RedirectView.as_view(url='/login/', permanent=False)),
     path(
         "login/", auth_views.LoginView.as_view(template_name="turno/login.html"), name="login"
