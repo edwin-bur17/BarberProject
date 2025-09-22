@@ -11,6 +11,8 @@
       <tr>
         <th>Cliente</th>
         <th>Horario</th>
+        <th>Estado</th>
+        <th>Acciones</th>
       </tr>
     </thead>
     <tbody>
@@ -18,6 +20,29 @@
         <tr>
           <td>{{ r.cliente.username }}</td>
           <td>{{ r.hora_inicio }} - {{ r.hora_fin }}</td>
+          <td>
+            {% if r.estado == "pendiente" %}
+              <span style="color: blue; font-weight: bold;">Pendiente</span>
+            {% elif r.estado == "completado" %}
+              <span style="color: green; font-weight: bold;">Completado</span>
+            {% else %}
+              <span style="color: red; font-weight: bold;">Cancelado</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if r.estado == "pendiente" %}
+              <form method="post" action="{% url 'turno:actualizar_estado' r.id %}" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="estado" value="completado">
+                <button type="submit" class="btn btn-success btn-sm">✔ Completar</button>
+              </form>
+              <form method="post" action="{% url 'turno:actualizar_estado' r.id %}" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="estado" value="cancelado">
+                <button type="submit" class="btn btn-danger btn-sm">❌ Cancelar</button>
+              </form>
+            {% endif %}
+          </td>
         </tr>
       {% endfor %}
     </tbody>

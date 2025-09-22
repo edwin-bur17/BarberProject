@@ -6,7 +6,6 @@ User = settings.AUTH_USER_MODEL
 
 class Barbero(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
- # 👈 Relación con el usuario
     nombre = models.CharField(max_length=100)
     especialidad = models.CharField(max_length=200)
 
@@ -18,17 +17,24 @@ class Barbero(models.Model):
 
 
 class Reserva(models.Model):
+    ESTADOS = [
+        ("pendiente", "Pendiente"),
+        ("completado", "Completado"),
+        ("cancelado", "Cancelado"),
+    ]
+
     barbero = models.ForeignKey(Barbero, on_delete=models.CASCADE)
     cliente = models.ForeignKey(User, on_delete=models.CASCADE)
     fecha = models.DateField()
     hora_inicio = models.TimeField()
     hora_fin = models.TimeField()
+    estado = models.CharField(max_length=20, choices=ESTADOS, default="pendiente")
 
     class Meta:
         unique_together = ("barbero", "fecha", "hora_inicio")
 
     def __str__(self):
-        return f"Reserva de {self.cliente} con {self.barbero} el {self.fecha} a las {self.hora_inicio}"
+        return f"Reserva de {self.cliente} con {self.barbero} el {self.fecha} a las {self.hora_inicio} - {self.estado}"
 
 
 class ListaEspera(models.Model):

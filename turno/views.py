@@ -8,6 +8,16 @@ from datetime import datetime, time, timedelta
 # ========================
 # DASHBOARD GENERAL
 # ========================
+def actualizar_estado(request, id):
+    reserva = get_object_or_404(Reserva, id=id)
+
+    if request.method == "POST":
+        nuevo_estado = request.POST.get("estado")
+        if nuevo_estado in ["pendiente", "completado", "cancelado"]:
+            reserva.estado = nuevo_estado
+            reserva.save()
+
+    return redirect("turno:panel_barbero")
 @login_required
 def panel_barbero(request):
     # Relacionar al usuario logueado con un barbero
