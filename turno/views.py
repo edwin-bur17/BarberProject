@@ -3,7 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from .models import Barbero, Reserva, ListaEspera
 from datetime import datetime, time, timedelta
-
+from .lista import reservas_memoria
+from .cola import cola_memoria
 
 # ========================
 # DASHBOARD GENERAL
@@ -64,6 +65,20 @@ def crear_reserva(request):
             hora_inicio=hora_inicio,
             hora_fin=hora_fin,
         )
+
+         # ✅ Guardar en memoria (lista enlazada)
+        reservas_memoria.agregar({
+            "id": reserva.id,
+            "cliente": request.user.username,
+            "barbero": barbero.nombre,
+            "fecha": str(fecha),
+            "hora_inicio": str(hora_inicio),
+            "hora_fin": str(hora_fin),
+            "estado": reserva.estado,
+        })
+
+        lista_reservas = reservas_memoria.obtener_todos()
+        print("lista reservas -->", lista_reservas)
 
         return redirect("turno:reserva_confirmada", reserva_id=reserva.id)
 
@@ -141,8 +156,24 @@ def unirse_lista_espera(request, id_barbero):
             barbero=barbero,
             fecha=fecha,
             hora_inicio=time(8, 0), 
-            cliente=request.user
+            cliente=
+            request.user
         )
+
+         #  Encolar en memoria (cola FIFO)
+        cola_memoria.encolar({
+            # "id": espera.id,
+            "cliente": request.user.username,
+            "barbero": barbero.nombre,
+            "fecha": str(fecha),
+            "hora_inicio": str(time(8, 0)),
+        })
+
+        # Obtener cola de espera
+        cola_espera = cola_memoria.ver_todos()
+
+        print("cola espera", cola_espera)
+
         return redirect("turno:dashboard")
 
 # ========================
