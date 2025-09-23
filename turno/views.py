@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from .models import Barbero, Reserva
+from .models import Barbero, Reserva, ListaEspera
 from datetime import datetime, time, timedelta
 
 
@@ -85,10 +85,10 @@ def agenda_barbero(request, id_barbero):
     barbero = get_object_or_404(Barbero, id=id_barbero)
     fecha = timezone.localdate()
 
-    # Generar slots de 1h de 8 a 17
+    # Generar slots de 1h de 8 a 12
     slots = []
     inicio = time(8, 0)
-    fin = time(18, 0)
+    fin = time(12, 0)
 
     actual = datetime.combine(fecha, inicio)
     while actual.time() < fin:
@@ -99,7 +99,8 @@ def agenda_barbero(request, id_barbero):
             barbero=barbero,
             fecha=fecha,
             hora_inicio=slot_inicio,
-            hora_fin=slot_fin
+            hora_fin=slot_fin,
+            estado="pendiente"      # solo reservas activas
         ).exists()
 
         slots.append({
@@ -113,16 +114,36 @@ def agenda_barbero(request, id_barbero):
     reserva_usuario = Reserva.objects.filter(
         cliente=request.user,
         barbero=barbero,
-        fecha=fecha
+        fecha=fecha,
+        estado="pendiente"
     ).first()
+
+    # todos ocupados?
+    todos_ocupados = all(not s["disponible"] for s in slots)
 
     return render(request, "turno/agenda_barbero.html", {
         "barbero": barbero,
         "fecha": fecha,
         "slots": slots,
-        "reserva_usuario": reserva_usuario
+        "reserva_usuario": reserva_usuario,
+        "todos_ocupados": todos_ocupados
     })
 
+# ========================
+# AGREGAR TURNO A LISTA DE ESPERA
+# ========================
+@login_required
+def unirse_lista_espera(request, id_barbero):
+    if request.method == "POST":
+        barbero = get_object_or_404(Barbero, id=id_barbero)
+        fecha = timezone.localdate()
+        ListaEspera.objects.create(
+            barbero=barbero,
+            fecha=fecha,
+            hora_inicio=time(8, 0), 
+            cliente=request.user
+        )
+        return redirect("turno:dashboard")
 
 # ========================
 # CANCELAR RESERVA
@@ -130,10 +151,40 @@ def agenda_barbero(request, id_barbero):
 @login_required
 def cancelar_reserva(request, reserva_id):
     reserva = get_object_or_404(Reserva, id=reserva_id, cliente=request.user)
+
     if request.method == "POST":
+        # Guardamos datos del turno antes de eliminarlo
+        barbero = reserva.barbero
+        fecha = reserva.fecha
+        hora_inicio = reserva.hora_inicio
+        hora_fin = reserva.hora_fin
+
+        # Cancelar/eliminar la reserva actual
         reserva.delete()
+
+        # Buscar en lista de espera para ese barbero y fecha
+        en_espera = ListaEspera.objects.filter(
+            barbero=barbero,
+            fecha=fecha
+        ).order_by("creado_en").first()
+
+        if en_espera:
+            # Crear nueva reserva para el primer usuario en espera
+            Reserva.objects.create(
+                cliente=en_espera.cliente,
+                barbero=barbero,
+                fecha=fecha,
+                hora_inicio=hora_inicio,
+                hora_fin=hora_fin,
+                estado="pendiente"
+            )
+            # Eliminarlo de la lista de espera
+            en_espera.delete()
+
         return redirect("turno:dashboard")
+
     return render(request, "turno/cancelar_reserva.html", {"reserva": reserva})
+
 
 
 # ========================

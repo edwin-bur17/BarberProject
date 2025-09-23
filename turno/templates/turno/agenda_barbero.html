@@ -68,13 +68,11 @@
   }
 </style>
 {% endblock %}
-
 {% block content %}
 <h2>Agenda de {{ barbero.nombre }} - {{ fecha|date:"j \\d\\e F \\d\\e Y" }}</h2>
 
 <div class="agenda-grid">
   {% if reserva_usuario %}
-    <!-- Mostrar turno del usuario -->
     <div class="card ocupado">
       <p>Ya tienes un turno reservado:</p>
       <p>{{ reserva_usuario.hora_inicio }} - {{ reserva_usuario.hora_fin }}</p>
@@ -84,7 +82,6 @@
       </form>
     </div>
   {% else %}
-    <!-- Mostrar grilla de turnos -->
     {% for slot in slots %}
       <div class="card {% if slot.disponible %}disponible{% else %}ocupado{% endif %}">
         <p>{{ slot.inicio }} - {{ slot.fin }}</p>
@@ -102,6 +99,16 @@
         {% endif %}
       </div>
     {% endfor %}
+
+    {% if todos_ocupados %}
+      <div class="card ocupado" style="grid-column: 1 / -1;">
+        <p>No hay turnos disponibles para este barbero</p>
+        <form method="post" action="{% url 'turno:unirse_lista_espera' barbero.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn">Unirse a la lista de espera</button>
+        </form>
+      </div>
+    {% endif %}
   {% endif %}
 </div>
 {% endblock %}

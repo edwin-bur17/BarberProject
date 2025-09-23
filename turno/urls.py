@@ -34,6 +34,8 @@ path("dashboard/b/atender/<int:id_barbero>/<str:cliente_nombre>/", views.atender
     # Agenda por barbero
     path("agenda/<int:id_barbero>/", views.agenda_barbero, name="agenda_barbero"),
 
+    path("lista_espera/<int:id_barbero>/", views.unirse_lista_espera, name="unirse_lista_espera"),
+
     # Dashboard de barberos
     path("dashboard/b/", views.barbero_dashboard, name="dashboard_barbero"),
     path("dashboard/b/turnos/<int:id_barbero>/", views.turnos_barbero, name="turnos_barbero"),
